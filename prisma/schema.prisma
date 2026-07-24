@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Tipe Enum
+enum Role {
+  ADMIN
+  EMPLOYEE
+  INTERN
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+}
+
+// Tipe Model
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(EMPLOYEE)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attendances Attendance[]
+  logbooks    Logbooks[]
+
+  @@map("users")
+}
+
+model Otp {
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  expiredAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("otps")
+}
+
+model Attendance {
+  id        String           @id @default(uuid())
+  userId    String
+  date      DateTime         @db.Date
+  clockIn   DateTime         @db.Time
+  clockOut  DateTime?
+  status    AttendanceStatus @default(PRESENT)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("attendances")
+}
+
+model Logbooks {
+  id          String   @id @default(uuid())
+  userId      String
+  date        DateTime @db.Date
+  description String   @db.Text
+  title       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("logbooks")
+}
