@@ -23,38 +23,51 @@ export class AuthService {
     ) { }
 
     // 1. LOGIN
-    async login(dto: LoginDto) {
-        const user = await this.prisma.user.findUnique({
-            where: { email: dto.email },
-        });
+async login(dto: LoginDto) {
+    console.log('=== LOGIN REQUEST ===');
+    console.log('Email:', dto.email);
 
-        if (!user) {
-            throw new UnauthorizedException('Email atau password salah');
-        }
+    const user = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+    });
 
-        if (!user.isActive) {
-            throw new UnauthorizedException('Akun Anda telah dinonaktifkan');
-        }
+    console.log('User ditemukan:', !!user);
 
-        const isPasswordValid = await bcrypt.compare(dto.password, user.password);
-        if (!isPasswordValid) {
-            throw new UnauthorizedException('Email atau password salah');
-        }
-
-        const payload = { sub: user.id, email: user.email, role: user.role };
-        const accessToken = this.jwtService.sign(payload);
-
-        return {
-            message: 'Login berhasil',
-            accessToken,
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-            },
-        };
+    if (!user) {
+        throw new UnauthorizedException('Email atau password salah');
     }
+
+    console.log('Email di DB:', user.email);
+    console.log('isActive:', user.isActive);
+    console.log('Password hash di DB:', user.password);
+
+    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+
+    console.log('Password valid:', isPasswordValid);
+
+    if (!isPasswordValid) {
+        throw new UnauthorizedException('Email atau password salah');
+    }
+
+    const payload = {
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+    };
+
+    const accessToken = this.jwtService.sign(payload);
+
+    return {
+        message: 'Login berhasil',
+        accessToken,
+        user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+        },
+    };
+}
 
     // 2. REQUEST OTP (Lupa Password)
     async requestOtp(dto: RequestOtpDto) {
