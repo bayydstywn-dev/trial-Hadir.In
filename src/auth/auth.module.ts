@@ -22,7 +22,7 @@ import { JwtStrategy } from './jwt.strategy';
                 secret: configService.get<string>('JWT_SECRET'),
 
                 signOptions: {
-                    expiresIn: '1d' as any,
+                    expiresIn: '5d',
                 },
             }),
         }),
