@@ -16,7 +16,7 @@ model User {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   attendances Attendance[]
-  logbooks    Logbooks[]
+  logbooks    Logbook[]
 
   @@map("users")
 }
@@ -47,7 +47,7 @@ model Attendance {
   @@map("attendances")
 }
 
-model Logbooks {
+model Logbook {
   id          String   @id @default(uuid())
   userId      String
   date        DateTime @db.Date
