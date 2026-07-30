@@ -13,7 +13,7 @@ export class LogbooksService {
 
     // 1. Buat Logbook Baru
     async create(userId: string, dto: CreateLogbookDto) {
-        const logbook = await this.prisma.logbooks.create({
+        const logbook = await this.prisma.logbook.create({
             data: {
                 userId,
                 date: new Date(dto.date),
@@ -30,7 +30,7 @@ export class LogbooksService {
 
     // 2. Ambil Daftar Logbook Milik Sendiri
     async findMyLogbooks(userId: string) {
-        return this.prisma.logbooks.findMany({
+        return this.prisma.logbook.findMany({
             where: { userId },
             orderBy: { date: 'desc' },
         });
@@ -38,14 +38,14 @@ export class LogbooksService {
 
     // 3. Edit Logbook Milik Sendiri
     async update(id: string, userId: string, dto: UpdateLogbookDto) {
-        const logbook = await this.prisma.logbooks.findUnique({ where: { id } });
+        const logbook = await this.prisma.logbook.findUnique({ where: { id } });
 
         if (!logbook) throw new NotFoundException('Logbook tidak ditemukan');
         if (logbook.userId !== userId) {
             throw new ForbiddenException('Anda tidak memiliki akses untuk mengubah logbook ini');
         }
 
-        const updated = await this.prisma.logbooks.update({
+        const updated = await this.prisma.logbook.update({
             where: { id },
             data: {
                 ...(dto.date && { date: new Date(dto.date) }),
@@ -59,14 +59,14 @@ export class LogbooksService {
 
     // 4. Hapus Logbook Milik Sendiri
     async remove(id: string, userId: string) {
-        const logbook = await this.prisma.logbooks.findUnique({ where: { id } });
+        const logbook = await this.prisma.logbook.findUnique({ where: { id } });
 
         if (!logbook) throw new NotFoundException('Logbook tidak ditemukan');
         if (logbook.userId !== userId) {
             throw new ForbiddenException('Anda tidak memiliki akses untuk menghapus logbook ini');
         }
 
-        await this.prisma.logbooks.delete({ where: { id } });
+        await this.prisma.logbook.delete({ where: { id } });
         return { message: 'Logbook berhasil dihapus' };
     }
 
@@ -81,7 +81,7 @@ export class LogbooksService {
             ];
         }
 
-        return this.prisma.logbooks.findMany({
+        return this.prisma.logbook.findMany({
             where: whereCondition,
             include: {
                 user: { select: { id: true, name: true, email: true, role: true } },
