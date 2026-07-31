@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
     imports: [
@@ -22,7 +23,25 @@ import { JwtStrategy } from './jwt.strategy';
                 secret: configService.get<string>('JWT_SECRET'),
 
                 signOptions: {
-                    expiresIn: '5d',
+                    expiresIn: '3d',
+                },
+            }),
+        }),
+
+        MailerModule.forRootAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => ({
+                transport: {
+                    host: configService.get<string>('MAIL_HOST'),
+                    port: configService.get<number>('MAIL_PORT'),
+                    auth: {
+                        user: configService.get<string>('MAIL_USER'),
+                        pass: configService.get<string>('MAIL_PASS'),
+                    }
+                },
+                defaults: {
+                    from: configService.get<string>('MAIL_FROM'),
                 },
             }),
         }),
@@ -41,4 +60,4 @@ import { JwtStrategy } from './jwt.strategy';
         AuthService,
     ],
 })
-export class AuthModule {}
+export class AuthModule { }

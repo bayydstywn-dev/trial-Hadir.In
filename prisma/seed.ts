@@ -50,7 +50,7 @@ async function main() {
             name: 'Muhammad Farel',
             email: 'farelmuh@hadirin.com',
             password: defaultPassword,
-            role: Role.INTERN,
+            role: Role.EMPLOYEE,
             isActive: true,
         },
     });
