@@ -107,4 +107,42 @@ export class UsersService {
             user: updatedUser,
         };
     }
-}
+    // 5. Ganti Password Mandiri
+    async ChangePassword(userId: string, oldPassword: string, newPassword: string){
+        // cari user berdasarkan ID
+        const user = await this.prisma.user.findUnique ({where: {id:userId}});
+        if (!user) throw new NotFoundException ('User tidak ditemukan');
+
+        // Verifikasi Password Lama
+        const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+        if (!isPasswordValid) {throw new BadRequestException('Password Lama Salah');}
+
+        // Validasi Password Baru Minimal 6 Karakter
+        if (newPassword.length < 6) {
+            throw new BadRequestException('Password baru harus minimal 6 karakter')
+        }
+
+        // Hash Password Baru
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update Password
+        await this.prisma.user.update({
+            where: {id:userId},
+            data: {password: hashedNewPassword}
+        });
+        
+        // Bersihkan token OTP yang mungkin aktif
+        await this.prisma.otp.updateMany({
+            where: {
+                email: user.email,
+                isUsed: false,
+                expiredAt: { gt: new Date() }
+            },
+            data: { isUsed: true }
+        })
+
+        return {
+            message: 'Password berhasil diubah. Silahkan login kembali.',
+        };
+    }
+    }

@@ -94,11 +94,11 @@ async function main() {
 
                 update: {},
                 create: {
-                        userId: user.id,
-                        date: targetDate,
-                        clockIn: clockIn,
-                        clockOut: clockOut,
-                        status: status,
+                    userId: user.id,
+                    date: targetDate,
+                    clockIn: clockIn,
+                    clockOut: clockOut,
+                    status: status,
                 },
             });
 
