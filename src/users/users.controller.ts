@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '@prisma/client';
+import { ChangeUsernameDto } from './dto/change-username.dto';
 
 @Controller('api/v1/users')
 @UseGuards(JwtAuthGuard, RolesGuard) // Proteksi: Wajib Login untuk semua route
@@ -49,6 +50,20 @@ export class UsersController {
     async toggleStatus(@Param('id') id: string, @Body('isActive') isActive: boolean) {
         return this.usersService.toggleStatus(id, isActive);
     }
+
+    // PATCH /api/v1/users/change-username
+    @Patch('change-username')
+    async changeUsername(
+        @Req() req: any,
+        @Body() dto: ChangeUsernameDto,
+    ) {
+        const userId = req.user.id;
+
+        return this.usersService.changeUsername(
+            userId,
+            dto.name,
+        );
+    }  
 
     // PATCH /api/v1/users/change-password (Bisa diakses Semua User yang Logged-in)
     @Patch('change-password')

@@ -145,4 +145,73 @@ export class UsersService {
             message: 'Password berhasil diubah. Silahkan login kembali.',
         };
     }
+
+    // 6. Ganti Username Sendiri
+async changeUsername(userId: string, name: string) {
+    // Cari user
+    const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+    });
+
+    if (!user) {
+        throw new NotFoundException('User tidak ditemukan');
+    }
+
+    // Hilangkan spasi depan/belakang
+    name = name.trim();
+
+    // Validasi
+    if (name.length < 3) {
+        throw new BadRequestException(
+            'Username minimal 3 karakter',
+        );
+    }
+
+    // Jika sama
+    if (user.name === name) {
+        throw new BadRequestException(
+            'Username baru tidak boleh sama dengan sebelumnya',
+        );
+    }
+
+    // Cek apakah username sudah dipakai
+    const existingUser = await this.prisma.user.findFirst({
+        where: {
+            name: {
+                equals: name,
+                mode: 'insensitive',
+            },
+            NOT: {
+                id: userId,
+            },
+        },
+    });
+
+    if (existingUser) {
+        throw new BadRequestException(
+            'Username sudah digunakan'
+        );
+    }
+
+    const updatedUser = await this.prisma.user.update({
+        where: {
+            id: userId,
+        },
+        data: {
+            name,
+        },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+        },
+    });
+
+    return {
+        message: 'Username berhasil diubah',
+        user: updatedUser,
+    };
+}
+
     }
