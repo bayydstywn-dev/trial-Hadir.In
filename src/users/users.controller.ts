@@ -11,12 +11,14 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { ChangePasswordDto } from './dto/change-password.dto'; // Import DTO baru
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { ChangeUsernameDto } from './dto/change-username.dto';
+import { ChangePhoneDto } from './dto/change-phone.dto';
+import { ChangeEmailDto } from './dto/change-email.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '@prisma/client';
-import { ChangeUsernameDto } from './dto/change-username.dto';
 
 @Controller('api/v1/users')
 @UseGuards(JwtAuthGuard, RolesGuard) // Proteksi: Wajib Login untuk semua route
@@ -63,7 +65,35 @@ export class UsersController {
             userId,
             dto.name,
         );
-    }  
+    }
+
+    // PATCH /api/v1/users/change-phone
+    @Patch('change-phone')
+    async changePhone(
+        @Req() req: any,
+        @Body() dto: ChangePhoneDto,
+    ) {
+        const userId = req.user.id;
+
+        return this.usersService.changePhone(
+            userId,
+            dto.phone,
+        );
+    }
+
+    // PATCH /api/v1/users/change-email
+    @Patch('change-email')
+    async changeEmail(
+        @Req() req: any,
+        @Body() dto: ChangeEmailDto,
+    ) {
+        const userId = req.user.id;
+
+        return this.usersService.changeEmail(
+            userId,
+            dto.email,
+        );
+    }
 
     // PATCH /api/v1/users/change-password (Bisa diakses Semua User yang Logged-in)
     @Patch('change-password')

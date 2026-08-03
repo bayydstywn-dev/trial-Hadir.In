@@ -18,6 +18,16 @@ export class UsersService {
             throw new BadRequestException('Email sudah terdaftar');
         }
 
+        if (dto.phone) {
+            const existingPhone = await this.prisma.user.findUnique({
+                where: { phone: dto.phone },
+            });
+
+            if (existingPhone) {
+                throw new BadRequestException('Nomor telepon sudah terdaftar');
+            }
+        }
+
         // Gunakan password dari input DTO, atau pakai password default 'HadirIn123'
         const defaultPassword = dto.password || 'HadirIn123';
         const hashedPassword = await bcrypt.hash(defaultPassword, 10);
@@ -26,6 +36,7 @@ export class UsersService {
             data: {
                 name: dto.name,
                 email: dto.email,
+                phone: dto.phone,
                 role: dto.role,
                 password: hashedPassword,
             },
@@ -33,6 +44,7 @@ export class UsersService {
                 id: true,
                 name: true,
                 email: true,
+                phone: true,
                 role: true,
                 isActive: true,
                 createdAt: true,
@@ -66,6 +78,7 @@ export class UsersService {
                 id: true,
                 name: true,
                 email: true,
+                phone: true,
                 role: true,
                 isActive: true,
                 createdAt: true,
@@ -212,6 +225,84 @@ async changeUsername(userId: string, name: string) {
         message: 'Username berhasil diubah',
         user: updatedUser,
     };
-}
-
     }
+
+    // 7. Ganti nomor telepon sendiri
+    async changePhone(userId: string, phone: string) {
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new NotFoundException('User tidak ditemukan');
+
+        phone = phone.trim();
+        if (phone.length < 9 || phone.length > 20) {
+            throw new BadRequestException('Nomor telepon harus antara 9 sampai 20 karakter');
+        }
+
+        if (user.phone === phone) {
+            throw new BadRequestException('Nomor telepon baru tidak boleh sama dengan sebelumnya');
+        }
+
+        const existingPhone = await this.prisma.user.findFirst({
+            where: {
+                phone: {
+                    equals: phone,
+                    mode: 'insensitive',
+                },
+                NOT: { id: userId },
+            },
+        });
+
+        if (existingPhone) {
+            throw new BadRequestException('Nomor telepon sudah digunakan');
+        }
+
+        const updatedUser = await this.prisma.user.update({
+            where: { id: userId },
+            data: { phone },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                role: true,
+            },
+        });
+
+        return {
+            message: 'Nomor telepon berhasil diubah',
+            user: updatedUser,
+        };
+    }
+
+    // 8. Ganti email sendiri
+    async changeEmail(userId: string, email: string) {
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new NotFoundException('User tidak ditemukan');
+
+        email = email.trim().toLowerCase();
+        if (user.email === email) {
+            throw new BadRequestException('Email baru tidak boleh sama dengan sebelumnya');
+        }
+
+        const existingEmail = await this.prisma.user.findUnique({ where: { email } });
+        if (existingEmail && existingEmail.id !== userId) {
+            throw new BadRequestException('Email sudah digunakan');
+        }
+
+        const updatedUser = await this.prisma.user.update({
+            where: { id: userId },
+            data: { email },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                role: true,
+            },
+        });
+
+        return {
+            message: 'Email berhasil diubah',
+            user: updatedUser,
+        };
+    }
+}
